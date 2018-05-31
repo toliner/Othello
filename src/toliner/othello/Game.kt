@@ -8,16 +8,47 @@ fun main(args: Array<String>) {
     Board(step = 0).run()
 }
 
-data class Board(private val lines: List<Line> = initBoard(), val step: Int) {
-    fun run() {
+data class Board(private val lines: List<Line> = initBoard(), private var step: Int) {
+    tailrec fun run() {
         if (step > 60) return //ToDo: 終了時処理
         //Game Logic
         println("Step $step")
         println(this)
-
+        handlePlayerProcess(Color.BLACK)
+        handlePlayerProcess(Color.WHITE)
+        step++
+        run()
     }
 
-    fun processPlayerAction(target: Cell) {
+    private fun handlePlayerProcess(playerColor: Color) {
+        print("Player ${playerColor.ordinal + 1}:")
+        try {
+            processPlayerAction(this[readLine()!!.split(' ').map { it.toInt() }.zipWithNext().first()], playerColor)
+            return
+        } catch (e: NumberFormatException) {
+            //入力が不正
+            println("your input is illegal format.")
+            println("obey format x y")
+            println("top left is (0,0)")
+            println("bottom right is (7,7)")
+            println("for example,")
+            println("0 3")
+            println("this means 3rd top line and 1st left line")
+        } catch (e: ArrayIndexOutOfBoundsException) {
+            //入力座標が範囲外
+            println("out of field.")
+        } catch (e: IllegalPositionException) {
+            //すでに配置されている
+            println("already used.")
+        }
+        handlePlayerProcess(playerColor)
+    }
+
+    private fun processPlayerAction(target: Cell, playerColor: Color) {
+        // targetの取得ができている時点で盤面内
+        if (target.color != Color.NONE) {
+            throw IllegalPositionException(target.x, target.y)
+        }
 
     }
 
@@ -55,8 +86,18 @@ data class Cell(val x: Int, val y: Int, var color: Color = Color.NONE)
 enum class Color {
     BLACK,
     WHITE,
-    NONE
+    NONE;
+
+    fun reversed(): Color {
+        return when (this) {
+            BLACK -> WHITE
+            WHITE -> BLACK
+            else -> NONE
+        }
+    }
 }
+
+data class IllegalPositionException(val x: Int, val y: Int) : RuntimeException()
 
 fun initLine(y: Int): List<Cell> = Array(8, { x ->
     when (x) {
