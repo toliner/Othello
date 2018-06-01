@@ -49,7 +49,30 @@ data class Board(private val lines: List<Line> = initBoard(), private var step: 
         if (target.color != Color.NONE) {
             throw IllegalPositionException(target.x, target.y)
         }
-
+        // 全方向愚直探査
+        // 上方向
+        (7 - target.y).let { num ->
+            if (num <= 0) {
+                return@let false
+            }
+            // 反転可能判定
+            if ((1..num).any { this[target.x, target.y + it].color == playerColor }) {
+                //反転
+                //whileしたいだけなので戻ってきた値は捨てる
+                (1..num).takeWhile {
+                    this[target.x, target.y + it].run {
+                        if (color == playerColor) false
+                        else {
+                            reverse()
+                            true
+                        }
+                    }
+                }
+                return@let true
+            } else return@let false
+        }
+        // 残り5方向にやって、全部の結果のorを取りたい。
+        // falseなら設置不可で例外。
     }
 
     override fun toString(): String {
@@ -81,7 +104,11 @@ data class Line(private val y: Int, private val cells: List<Cell> = initLine(y))
     operator fun get(x: Int): Cell = cells[x]
 }
 
-data class Cell(val x: Int, val y: Int, var color: Color = Color.NONE)
+data class Cell(val x: Int, val y: Int, var color: Color = Color.NONE) {
+    fun reverse() {
+        color = color.reversed()
+    }
+}
 
 enum class Color {
     BLACK,
@@ -98,6 +125,10 @@ enum class Color {
 }
 
 data class IllegalPositionException(val x: Int, val y: Int) : RuntimeException()
+
+enum class Vec(val x: Int, val y: Int) {
+
+}
 
 fun initLine(y: Int): List<Cell> = Array(8, { x ->
     when (x) {
