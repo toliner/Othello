@@ -43,59 +43,32 @@ data class Board(private val lines: List<Line> = initBoard(), private var step: 
             //すでに配置されている
             println("already used.")
         }
-        handlePlayerProcess(playerColor)
+        println(this)
     }
 
     private fun processPlayerAction(target: Cell, playerColor: Color) {
         // targetの取得ができている時点で盤面内
         if (target.color != Color.NONE) {
-            throw IllegalPositionException(target.x, target.y)
+            throw IllegalPositionException(target.x, target.y, IllegalPositionType.ALREADY_USED)
         }
         // 全方向愚直探査
-        // 上方向
-        (7 - target.y).let { num ->
-            if (num <= 0) {
-                return@let false
-            }
-            // 反転可能判定
-            if ((1..num).any { this[target.x, target.y + it].color == playerColor }) {
-                //反転
-                //whileしたいだけなので戻ってきた値は捨てる
-                (1..num).takeWhile {
-                    this[target.x, target.y + it].run {
-                        if (color == playerColor) false
-                        else {
-                            reverse()
-                            true
-                        }
-                    }
-                }
-                return@let true
-            } else return@let false
+        if (!Vec.values().map { checkAndReverse(target, playerColor, it) }.any { it }) {
+            // Failed
+            throw IllegalPositionException(target.x, target.y, IllegalPositionType.CANNOT_PUT)
         }
-        // 残り5方向にやって、全部の結果のorを取りたい。
-        // falseなら設置不可で例外。
     }
 
     private fun checkAndReverse(target: Cell, playerColor: Color, vec: Vec): Boolean {
-        // targetの取得ができている時点で盤面内
-        if (target.color != Color.NONE) {
-            throw IllegalPositionException(target.x, target.y)
-        }
         // Vecの方向に探査
         return (min(min(target.x, 7 - target.x), min(target.y, 7 - target.y))).let { num ->
             if (num <= 0) return@let false
             // Noneか同色が出るまで回す
             // Noneが出る→反転させずに(例外)終了
             // 同色が出る→反転
-            return try {
-                (1..num).map { this[target.x + vec.x * num, target.y + vec.y * num] }
-                        .takeWhile { if (playerColor == Color.NONE) throw NoneCellException() else it.color == playerColor }
-                        .forEach { it.reverse() }
-                true
-            } catch (e: NoneCellException) {
-                false
-            }
+            (1..num).map { this[target.x + vec.x * num, target.y + vec.y * num] }
+                    .takeWhile { if (playerColor == Color.NONE) return@let false else it.color == playerColor }
+                    .forEach { it.reverse() }
+            return@let true
         }
     }
 
@@ -148,9 +121,12 @@ enum class Color {
     }
 }
 
-data class IllegalPositionException(val x: Int, val y: Int) : RuntimeException()
+enum class IllegalPositionType(val message: String) {
+    ALREADY_USED("already used."),
+    CANNOT_PUT("you cannot put there.")
+}
 
-class NoneCellException : RuntimeException()
+data class IllegalPositionException(val x: Int, val y: Int, val type: IllegalPositionType) : RuntimeException()
 
 enum class Vec(val x: Int, val y: Int) {
     UP(0, 1),
