@@ -127,7 +127,14 @@ enum class Color {
 data class IllegalPositionException(val x: Int, val y: Int) : RuntimeException()
 
 enum class Vec(val x: Int, val y: Int) {
-
+    UP(0, 1),
+    DOWN(0, -1),
+    RIGHT(1, 0),
+    LEFT(-1, 0),
+    UP_RIGHT(1, 1),
+    UP_LEFT(-1, 1),
+    DOWN_RIGHT(1, -1),
+    DOWN_LEFT(-1, -1)
 }
 
 fun initLine(y: Int): List<Cell> = Array(8, { x ->
