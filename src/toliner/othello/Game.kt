@@ -1,5 +1,7 @@
 package toliner.othello
 
+import kotlin.math.min
+
 fun main(args: Array<String>) {
     println("Game Start")
     println("Input format: x y")
@@ -75,6 +77,28 @@ data class Board(private val lines: List<Line> = initBoard(), private var step: 
         // falseなら設置不可で例外。
     }
 
+    private fun checkAndReverse(target: Cell, playerColor: Color, vec: Vec): Boolean {
+        // targetの取得ができている時点で盤面内
+        if (target.color != Color.NONE) {
+            throw IllegalPositionException(target.x, target.y)
+        }
+        // Vecの方向に探査
+        return (min(min(target.x, 7 - target.x), min(target.y, 7 - target.y))).let { num ->
+            if (num <= 0) return@let false
+            // Noneか同色が出るまで回す
+            // Noneが出る→反転させずに(例外)終了
+            // 同色が出る→反転
+            return try {
+                (1..num).map { this[target.x + vec.x * num, target.y + vec.y * num] }
+                        .takeWhile { if (playerColor == Color.NONE) throw NoneCellException() else it.color == playerColor }
+                        .forEach { it.reverse() }
+                true
+            } catch (e: NoneCellException) {
+                false
+            }
+        }
+    }
+
     override fun toString(): String {
         return buildString {
             lines.forEach {
@@ -125,6 +149,8 @@ enum class Color {
 }
 
 data class IllegalPositionException(val x: Int, val y: Int) : RuntimeException()
+
+class NoneCellException : RuntimeException()
 
 enum class Vec(val x: Int, val y: Int) {
     UP(0, 1),
