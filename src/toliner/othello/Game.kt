@@ -68,15 +68,18 @@ data class Board(private val lines: List<Line> = initBoard(), private var step: 
 
     private fun checkAndReverse(target: Cell, playerColor: Color, vec: Vec): Boolean {
         // Vecの方向に探査
+        check(target, playerColor, vec)?.forEach { this[it.x, it.y].reverse() } ?: return false
+        return true
+    }
+
+    private fun check(target: Cell, playerColor: Color, vec: Vec): List<Cell>? {
         return (min(min(target.x, 7 - target.x), min(target.y, 7 - target.y))).let { num ->
-            if (num <= 0) return@let false
+            if (num <= 0) return@let null
             // Noneか同色が出るまで回す
             // Noneが出る→反転させずに(例外)終了
             // 同色が出る→反転
             (1..num).map { this[target.x + vec.x * it, target.y + vec.y * it] }
-                    .takeWhile { if (it.color == Color.NONE) return@let false else it.color != playerColor }
-                    .forEach { this[it.x, it.y].reverse() }
-            return@let true
+                    .takeWhile { if (it.color == Color.NONE) return@let null else it.color != playerColor }
         }
     }
 
