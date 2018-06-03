@@ -7,25 +7,28 @@ fun main(args: Array<String>) {
     println("Input format: x y")
     println("top left is (0,0)")
     println("bottom right is (7,7)")
-    Board(step = 0).run()
+    Board(step = 0).run {
+        println(this)
+        run()
+    }
 }
 
 data class Board(private val lines: List<Line> = initBoard(), private var step: Int) {
     tailrec fun run() {
         if (step > 60) return //ToDo: 終了時処理
         //Game Logic
-        println("Step $step")
-        println(this)
+        println("Step ${step + 1}")
         handlePlayerProcess(Color.BLACK)
         handlePlayerProcess(Color.WHITE)
         step++
         run()
     }
 
-    private fun handlePlayerProcess(playerColor: Color) {
+    private tailrec fun handlePlayerProcess(playerColor: Color) {
         print("Player ${playerColor.ordinal + 1}:")
         try {
             processPlayerAction(this[readLine()!!.split(' ').map { it.toInt() }.zipWithNext().first()], playerColor)
+            println(this)
             return
         } catch (e: NumberFormatException) {
             //入力が不正
@@ -41,9 +44,13 @@ data class Board(private val lines: List<Line> = initBoard(), private var step: 
             println("out of field.")
         } catch (e: IllegalPositionException) {
             //すでに配置されている
-            println("already used.")
+            when (e.type) {
+                IllegalPositionType.ALREADY_USED -> println("already used.")
+                IllegalPositionType.CANNOT_PUT -> println("you cannot put there.")
+            }
         }
         println(this)
+        handlePlayerProcess(playerColor)
     }
 
     private fun processPlayerAction(target: Cell, playerColor: Color) {
@@ -56,6 +63,7 @@ data class Board(private val lines: List<Line> = initBoard(), private var step: 
             // Failed
             throw IllegalPositionException(target.x, target.y, IllegalPositionType.CANNOT_PUT)
         }
+        target.color = playerColor
     }
 
     private fun checkAndReverse(target: Cell, playerColor: Color, vec: Vec): Boolean {
@@ -65,9 +73,9 @@ data class Board(private val lines: List<Line> = initBoard(), private var step: 
             // Noneか同色が出るまで回す
             // Noneが出る→反転させずに(例外)終了
             // 同色が出る→反転
-            (1..num).map { this[target.x + vec.x * num, target.y + vec.y * num] }
-                    .takeWhile { if (playerColor == Color.NONE) return@let false else it.color == playerColor }
-                    .forEach { it.reverse() }
+            (1..num).map { this[target.x + vec.x * it, target.y + vec.y * it] }
+                    .takeWhile { if (it.color == Color.NONE) return@let false else it.color != playerColor }
+                    .forEach { this[it.x, it.y].reverse() }
             return@let true
         }
     }
@@ -129,14 +137,14 @@ enum class IllegalPositionType(val message: String) {
 data class IllegalPositionException(val x: Int, val y: Int, val type: IllegalPositionType) : RuntimeException()
 
 enum class Vec(val x: Int, val y: Int) {
-    UP(0, 1),
-    DOWN(0, -1),
+    UP(0, -1),
+    DOWN(0, 1),
     RIGHT(1, 0),
     LEFT(-1, 0),
-    UP_RIGHT(1, 1),
-    UP_LEFT(-1, 1),
-    DOWN_RIGHT(1, -1),
-    DOWN_LEFT(-1, -1)
+    UP_RIGHT(1, -1),
+    UP_LEFT(-1, -1),
+    DOWN_RIGHT(1, 1),
+    DOWN_LEFT(-1, 1)
 }
 
 fun initLine(y: Int): List<Cell> = Array(8, { x ->
