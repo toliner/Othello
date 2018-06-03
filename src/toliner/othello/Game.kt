@@ -7,7 +7,7 @@ fun main(args: Array<String>) {
     println("Input format: x y")
     println("top left is (0,0)")
     println("bottom right is (7,7)")
-    Board(step = 0).run {
+    Board(step = 0).apply {
         println(this)
         run()
     }
@@ -18,18 +18,29 @@ data class Board(private val lines: List<Line> = initBoard(), private var step: 
         if (step > 60) return //ToDo: 終了時処理
         //Game Logic
         println("Step ${step + 1}")
-        handlePlayerProcess(Color.BLACK)
-        handlePlayerProcess(Color.WHITE)
+        if (handlePlayerProcess(Color.BLACK) || handlePlayerProcess(Color.WHITE)) {
+            //ToDo: 終了処理(連続パス)
+        }
         step++
         run()
     }
 
-    private tailrec fun handlePlayerProcess(playerColor: Color) {
+    private tailrec fun handlePlayerProcess(playerColor: Color): Boolean {
         print("Player ${playerColor.ordinal + 1}:")
         try {
-            processPlayerAction(this[readLine()!!.split(' ').map { it.toInt() }.zipWithNext().first()], playerColor)
-            println(this)
-            return
+            readLine()!!.also {
+                if (it == "pass") {
+                    if (checkForPass(playerColor)) {
+                        return true
+                    } else {
+                        println("you cannot pass now")
+                    }
+                } else {
+                    processPlayerAction(this[it.split(' ').map { it.toInt() }.zipWithNext().first()], playerColor)
+                    println(this)
+                    return false
+                }
+            }
         } catch (e: NumberFormatException) {
             //入力が不正
             println("your input is illegal format.")
@@ -50,7 +61,11 @@ data class Board(private val lines: List<Line> = initBoard(), private var step: 
             }
         }
         println(this)
-        handlePlayerProcess(playerColor)
+        return handlePlayerProcess(playerColor)
+    }
+
+    private fun checkForPass(playerColor: Color): Boolean {
+
     }
 
     private fun processPlayerAction(target: Cell, playerColor: Color) {
