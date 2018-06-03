@@ -15,14 +15,37 @@ fun main(args: Array<String>) {
 
 data class Board(private val lines: List<Line> = initBoard(), private var step: Int) {
     tailrec fun run() {
-        if (step > 60) return //ToDo: 終了時処理
+        if (step > 60) {
+            finish()
+            return
+        }
         //Game Logic
         println("Step ${step + 1}")
         if (handlePlayerProcess(Color.BLACK) || handlePlayerProcess(Color.WHITE)) {
-            //ToDo: 終了処理(連続パス)
+            finish()
+            return
         }
         step++
         run()
+    }
+
+    private fun finish() {
+        println("-------------------")
+        println("| Game Finished!! |")
+        println("-------------------")
+        getAllCells().run {
+            count { it.color == Color.BLACK } to count { it.color == Color.WHITE }
+        }.apply {
+            println("Player 1:$first")
+            println("Player 2:$second")
+            println(
+                    when {
+                        first > second -> "Player 1 win!!"
+                        first < second -> "Player 2 win!!"
+                        else -> "draw!!"
+                    }
+            )
+        }
     }
 
     private tailrec fun handlePlayerProcess(playerColor: Color): Boolean {
@@ -67,8 +90,8 @@ data class Board(private val lines: List<Line> = initBoard(), private var step: 
     private fun checkForPass(playerColor: Color): Boolean {
         return !getAllCells().filter {
             it.color == Color.NONE
-        }.any {cell ->
-            Vec.values().any {this.check(cell, playerColor, it) != null}
+        }.any { cell ->
+            Vec.values().any { this.check(cell, playerColor, it) != null }
         }
     }
 
