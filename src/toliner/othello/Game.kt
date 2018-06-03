@@ -65,7 +65,11 @@ data class Board(private val lines: List<Line> = initBoard(), private var step: 
     }
 
     private fun checkForPass(playerColor: Color): Boolean {
-
+        return !getAllCells().filter {
+            it.color == Color.NONE
+        }.any {cell ->
+            Vec.values().any {this.check(cell, playerColor, it) != null}
+        }
     }
 
     private fun processPlayerAction(target: Cell, playerColor: Color) {
@@ -98,6 +102,8 @@ data class Board(private val lines: List<Line> = initBoard(), private var step: 
         }
     }
 
+    private fun getAllCells(): List<Cell> = lines.flatMap { it.cells }
+
     override fun toString(): String {
         return buildString {
             lines.forEach {
@@ -111,7 +117,7 @@ data class Board(private val lines: List<Line> = initBoard(), private var step: 
     operator fun get(pair: Pair<Int, Int>) = this[pair.first, pair.second]
 }
 
-data class Line(private val y: Int, private val cells: List<Cell> = initLine(y)) {
+data class Line(private val y: Int, val cells: List<Cell> = initLine(y)) {
     override fun toString(): String {
         return buildString {
             cells.forEach {
