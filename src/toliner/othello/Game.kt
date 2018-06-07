@@ -129,7 +129,10 @@ data class Board(private val lines: List<Line> = initBoard(), private var step: 
 
     override fun toString(): String {
         return buildString {
+            appendln("  0 1 2 3 4 5 6 7")
             lines.forEach {
+                append(it.y)
+                append(' ')
                 appendln(it)
             }
         }
@@ -140,15 +143,16 @@ data class Board(private val lines: List<Line> = initBoard(), private var step: 
     operator fun get(pair: Pair<Int, Int>) = this[pair.first, pair.second]
 }
 
-data class Line(private val y: Int, val cells: List<Cell> = initLine(y)) {
+data class Line(val y: Int, val cells: List<Cell> = initLine(y)) {
     override fun toString(): String {
         return buildString {
             cells.forEach {
                 append(when (it.color) {
-                    Color.BLACK -> '◯'
-                    Color.WHITE -> '☓'
-                    Color.NONE -> '・'
+                    Color.BLACK -> '○'
+                    Color.WHITE -> '×'
+                    Color.NONE -> '-'
                 })
+                append(' ')
             }
         }
     }
