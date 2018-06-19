@@ -15,13 +15,13 @@ fun main(args: Array<String>) {
 
 data class Board(private val lines: List<Line> = initBoard(), private var step: Int) {
     tailrec fun run() {
-        if (step > 60) {
+        if (step > 30) {
             finish()
             return
         }
         //Game Logic
         println("Step ${step + 1}")
-        if (handlePlayerProcess(Color.BLACK) || handlePlayerProcess(Color.WHITE)) {
+        if (handlePlayerProcess(Color.BLACK) && handlePlayerProcess(Color.WHITE)) {
             finish()
             return
         }
