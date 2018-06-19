@@ -98,12 +98,12 @@ data class Board(private val lines: List<Line> = initBoard(), private var step: 
     private fun processPlayerAction(target: Cell, playerColor: Color) {
         // targetの取得ができている時点で盤面内
         if (target.color != Color.NONE) {
-            throw IllegalPositionException(target.x, target.y, IllegalPositionType.ALREADY_USED)
+            throw IllegalPositionException(IllegalPositionType.ALREADY_USED)
         }
         // 全方向愚直探査
         if (!Vec.values().map { checkAndReverse(target, playerColor, it) }.any { it }) {
             // Failed
-            throw IllegalPositionException(target.x, target.y, IllegalPositionType.CANNOT_PUT)
+            throw IllegalPositionException(IllegalPositionType.CANNOT_PUT)
         }
         target.color = playerColor
     }
@@ -183,12 +183,12 @@ enum class Color {
     }
 }
 
-enum class IllegalPositionType(val message: String) {
-    ALREADY_USED("already used."),
-    CANNOT_PUT("you cannot put there.")
+enum class IllegalPositionType {
+    ALREADY_USED,
+    CANNOT_PUT
 }
 
-data class IllegalPositionException(val x: Int, val y: Int, val type: IllegalPositionType) : RuntimeException()
+data class IllegalPositionException(val type: IllegalPositionType) : RuntimeException()
 
 enum class Vec(val x: Int, val y: Int) {
     UP(0, -1),
