@@ -114,13 +114,17 @@ data class Board(private val lines: List<Line> = initBoard(), private var step: 
     }
 
     private fun check(target: Cell, playerColor: Color, vec: Vec): List<Cell>? {
-        return (min((if (vec.x < 0) target.x - 1 else if (vec.x > 0) 7 - target.x else 334), (if (vec.y < 0) target.y - 1 else if (vec.y > 0) 7 - target.y else 334))).let { num ->
-            if (num <= 0) return null
+        return (min((if (vec.x < 0) target.x else if (vec.x > 0) 7 - target.x else 334), (if (vec.y < 0) target.y else if (vec.y > 0) 7 - target.y else 334))).let { num ->
+            if (num <= 0 || num > 7) return null
             // Noneか同色が出るまで回す
             // Noneが出る→反転させずに(例外)終了
             // 同色が出る→反転
             (1..num).map { this[target.x + vec.x * it, target.y + vec.y * it] }
-                    .takeWhile { if (it.color == Color.NONE) return null else it.color == playerColor.reversed() }
+                    .takeWhile { if (it.color == Color.NONE) return null else it.color == playerColor.reversed() }.let {
+                        if (it.size == num) {
+                            return null
+                        } else it
+                    }
         }
     }
 
