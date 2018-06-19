@@ -198,7 +198,7 @@ enum class Vec(val x: Int, val y: Int) {
     DOWN_LEFT(-1, 1)
 }
 
-fun initLine(y: Int): List<Cell> = Array(8, { x ->
+fun initLine(y: Int): List<Cell> = Array(8) { x ->
     when (x) {
         3 -> when (y) {
             3 -> Cell(x, y, Color.BLACK)
@@ -212,6 +212,6 @@ fun initLine(y: Int): List<Cell> = Array(8, { x ->
         }
         else -> Cell(x, y)
     }
-}).toList()
+}.toList()
 
-fun initBoard(): List<Line> = Array(8, { y -> Line(y) }).toList()
+fun initBoard(): List<Line> = Array(8) { y -> Line(y) }.toList()
